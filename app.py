@@ -1366,6 +1366,7 @@ def api_import_planning():
         return jsonify({'success': False, 'message': str(e)})
 
 if __name__ == '__main__':
-    # Changement de port pour éviter les conflits
-    print("Démarrage du serveur sur le port 5001...")
-    app.run(debug=True, port=5001)
+    # Changement de port pour éviter les conflits et compatibilité Cloud
+    port = int(os.environ.get("PORT", 5001))
+    print(f"Démarrage du serveur sur le port {port}...")
+    app.run(debug=True, port=port, host='0.0.0.0')
