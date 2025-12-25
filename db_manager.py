@@ -17,7 +17,8 @@ class DBManager:
         # Activer SSL si on est sur Aiven (détection via DB_HOST)
         if 'aivencloud' in self.config['host']:
              self.config['ssl_disabled'] = False
-             # self.config['ssl_verify_cert'] = False # Parfois nécessaire si on n'a pas le CA
+             self.config['ssl_verify_cert'] = False
+             self.config['ssl_verify_identity'] = False
 
     def get_connection(self):
         try:
