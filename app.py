@@ -762,7 +762,22 @@ def parse_attendance_data(filepath, engine):
     """Parse the attendance Excel file and extract employee data"""
     
     # Read the entire file without headers
-    df = pd.read_excel(filepath, engine=engine, header=None)
+    try:
+        df = pd.read_excel(filepath, engine=engine, header=None)
+    except Exception as e:
+        # Fallback pour les faux fichiers .xls qui sont en fait du HTML
+        if 'Expected BOF record' in str(e) or 'html' in str(e).lower():
+            try:
+                # On lit comme du HTML (retourne une liste de DataFrames)
+                dfs = pd.read_html(filepath, header=None)
+                if dfs:
+                    df = dfs[0]  # On prend le premier tableau trouvé
+                else:
+                    raise e
+            except:
+                raise e # Si échec HTML aussi, on remonte l'erreur initiale
+        else:
+            raise e
     
     employees = []
     current_employee = None
