@@ -13,6 +13,11 @@ class DBManager:
             'port': int(os.environ.get('DB_PORT', 3306)),
             'raise_on_warnings': False
         }
+        
+        # Activer SSL si on est sur Aiven (détection via DB_HOST)
+        if 'aivencloud' in self.config['host']:
+             self.config['ssl_disabled'] = False
+             # self.config['ssl_verify_cert'] = False # Parfois nécessaire si on n'a pas le CA
 
     def get_connection(self):
         try:
