@@ -9,3 +9,5 @@ reports/
 .vercel/
 .git/
 .vscode/
+aiven_credentials.txt
+acces base donnee.txt
