@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Rapport d'Assiduité</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #1a202c;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            color: #1a237e;
+            font-size: 36px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #f8f9fa;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 0 0 0 100%;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: #1a237e;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            height: 400px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1a237e;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Table Section */
+        .table-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+            padding: 15px 20px;
+            text-align: left;
+        }
+
+        th:first-child {
+            border-radius: 12px 0 0 12px;
+        }
+
+        th:last-child {
+            border-radius: 0 12px 12px 0;
+        }
+
+        td {
+            padding: 20px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 15px;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        /* Employee Info in Table */
+        .employee-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .employee-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .employee-name {
+            font-weight: 700;
+            color: #1a237e;
+            margin-bottom: 4px;
+        }
+
+        .employee-id {
+            color: #718096;
+            font-size: 13px;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        .badge-dept {
+            background: #ebf4ff;
+            color: #4299e1;
+            text-transform: uppercase;
+        }
+
+        .badge-present {
+            background: #def7ec;
+            color: #03543f;
+        }
+
+        .badge-absent {
+            background: #fde8e8;
+            color: #9b1c1c;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1a237e;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .edit-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5em;
+            /* Bigger icon */
+            transition: transform 0.2s;
+            padding: 5px;
+        }
+
+        .edit-btn:hover {
+            transform: scale(1.2);
+            background-color: #f0f0f0;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom:20px; color:#1a237e;">Modifier l'Employé</h2>
+            <form id="editForm">
+                <input type="hidden" id="editPersonId">
+
+                <div class="form-group">
+                    <label>Nom</label>
+                    <input type="text" id="editName" disabled style="background:#f5f5f5;">
+                </div>
+
+                <div class="form-group">
+                    <label>Jours Travaillés</label>
+                    <input type="number" id="editDaysInput" min="0" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label>Jours Absences</label>
+                    <input type="number" id="editAbsencesInput" min="0" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label>Total Heures</label>
+                    <input type="number" id="editHoursInput" step="0.01" min="0">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <span>📊</span>
+                Dashboard
+                <small
+                    style="font-size: 14px; color: #718096; font-weight: 500; margin-left: 15px; background: #ebf4ff; padding: 5px 15px; border-radius: 20px; border: 1px solid #bee3f8;">
+                    📅 {{ date_range }}
+                </small>
+            </h1>
+            <div class="header-actions">
+                <a href="/" class="btn btn-secondary">← Menu</a>
+                <a href="/heures-travail" class="btn btn-secondary">🕒 Heures de Travail</a>
+                <a href="/planning" class="btn btn-secondary">📅 Planning</a>
+                <a href="/generate-excel" class="btn btn-secondary">
+                    <span>📊</span> Excel
+                </a>
+                <a href="/generate-pdf" class="btn btn-primary">
+                    <span>📄</span> PDF
+                </a>
+            </div>
+        </div>
+
+        {% if db_message %}
+        <div
+            style="background: #ecfdf5; color: #065f46; padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #a7f3d0; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">✅</span>
+            <span style="font-weight: 600;">{{ db_message }}</span>
+        </div>
+        {% endif %}
+
+        <!-- Global Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ global_stats.total_employees }}</div>
+                <div class="stat-label">Employés</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ global_stats.total_hours }}h</div>
+                <div class="stat-label">Total Heures</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ global_stats.avg_hours_per_employee }}h</div>
+                <div class="stat-label">Moyenne / Employé</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ global_stats.attendance_rate }}%</div>
+                <div class="stat-label">Taux de Présence</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">📈 Heures par Employé</div>
+                <canvas id="hoursChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">🏢 Répartition par Département</div>
+                <canvas id="departmentChart"></canvas>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">🟣 Statut de Présence</div>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">📉 Performance Globale</div>
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="search-section">
+            <div class="search-group">
+                <label>Rechercher un employé</label>
+                <input type="text" id="searchInput" class="search-input" placeholder="Nom ou ID...">
+            </div>
+            <div class="search-group">
+                <label>Département</label>
+                <select id="deptFilter" class="search-input">
+                    <option value="">Tous les départements</option>
+                </select>
+            </div>
+            <div class="search-group">
+                <label>Trier par</label>
+                <select id="sortBy" class="search-input">
+                    <option value="name">Nom (A-Z)</option>
+                    <option value="hours">Heures (Décroissant)</option>
+                    <option value="days">Jours Travaillés (Décroissant)</option>
+                    <option value="absences">Absences (Décroissant)</option>
+                    <option value="late">Retards (Décroissant)</option>
+                    <option value="overtime">Heures Supp. (Décroissant)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Emp Table -->
+        <div class="table-card">
+            <div class="chart-title">📋 Tableau Récapitulatif des Employés</div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employé</th>
+                            <th>Département</th>
+                            <th>Jours Travaillés</th>
+                            <th>Absences</th>
+                            <th>Nbr Retards</th>
+                            <th>Total Heures</th>
+                            <th>H. Supp.</th>
+                            <th>H. Manquantes</th>
+                            <th>Retards (min)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeesTableBody">
+                        <!-- Content populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script id="employees-data" type="application/json">
+        {{ employees | tojson | safe }}
+    </script>
+
+    <script>
+        // --- DONNEES GLOBALES (Récupération sécurisée) ---
+        const employeesData = JSON.parse(document.getElementById('employees-data').textContent);
+
+        // --- ELEMENTS DOM ---
+        const searchInput = document.getElementById('searchInput');
+        const deptFilter = document.getElementById('deptFilter');
+        const sortBy = document.getElementById('sortBy');
+        const tableBody = document.getElementById('employeesTableBody');
+        const modal = document.getElementById('editModal');
+        const editForm = document.getElementById('editForm');
+        let currentEmployeeId = null;
+
+        // --- FONCTIONS UTILITAIRES ---
+        function getBadgeClass(absences) {
+            return absences > 0 ? 'badge-absent' : 'badge-present';
+        }
+
+        // --- RENDU DU TABLEAU ---
+        function renderTable(data) {
+            tableBody.innerHTML = '';
+            data.forEach(emp => {
+                const tr = document.createElement('tr');
+
+                // Calculer l'avatar initiale
+                let initials = emp.name ? emp.name.substring(0, 2).toUpperCase() : 'NA';
+
+                const lateMinutes = emp.stats.total_late_minutes || 0;
+                const lateStyle = lateMinutes > 0 ? 'color: #e53e3e; font-weight: bold;' : 'color: #38a169;';
+
+                tr.innerHTML = `
+                    <td>
+                        <div class="employee-info">
+                            <div class="employee-avatar">${initials}</div>
+                            <div>
+                                <div class="employee-name">${emp.name}</div>
+                                <div class="employee-id">ID: ${emp.person_id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge badge-dept">${emp.department}</span></td>
+                    <td>${emp.stats.total_days_worked} j</td>
+                    <td>
+                        <span class="badge ${getBadgeClass(emp.stats.total_days_absent)}">
+                            ${emp.stats.total_days_absent} Jours
+                        </span>
+                    </td>
+                    <td style="font-weight:bold; color:${emp.stats.count_lates > 0 ? '#e53e3e' : '#718096'}">
+                        ${emp.stats.count_lates || 0}
+                    </td>
+                    <td>${emp.stats.total_hours} h</td>
+                    <td style="color: #38a169; font-weight: bold;">
+                        ${emp.stats.total_overtime_minutes ? Math.floor(emp.stats.total_overtime_minutes / 60) + 'h' + (emp.stats.total_overtime_minutes % 60).toString().padStart(2, '0') : '0h00'}
+                    </td>
+                    <td style="color: #e53e3e;">
+                        ${emp.stats.total_undertime_minutes ? Math.floor(emp.stats.total_undertime_minutes / 60) + 'h' + (emp.stats.total_undertime_minutes % 60).toString().padStart(2, '0') : '0h00'}
+                    </td>
+                    <td style="${lateStyle}">${lateMinutes} min</td>
+                    <td>
+                        <button class="edit-btn" onclick="openEditModal('${emp.person_id}')" title="Modifier">
+                            ✏️
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // --- FILTRAGE ET TRI ---
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedDept = deptFilter.value;
+            const sortOption = sortBy.value;
+
+            // 1. Filtre
+            let filtered = employeesData.filter(emp => {
+                const nameStr = emp.name ? emp.name.toLowerCase() : '';
+                const idStr = emp.person_id ? String(emp.person_id).toLowerCase() : '';
+                const matchesSearch = nameStr.includes(searchTerm) || idStr.includes(searchTerm);
+                const matchesDept = !selectedDept || emp.department === selectedDept;
+                return matchesSearch && matchesDept;
+            });
+
+            // 2. Tri
+            filtered.sort((a, b) => {
+                switch (sortOption) {
+                    case 'name': return (a.name || '').localeCompare(b.name || '');
+                    case 'hours': return b.stats.total_hours - a.stats.total_hours;
+                    case 'days': return b.stats.total_days_worked - a.stats.total_days_worked;
+                    case 'absences': return b.stats.total_days_absent - a.stats.total_days_absent;
+                    case 'late': return (b.stats.total_late_minutes || 0) - (a.stats.total_late_minutes || 0);
+                    case 'overtime': return (b.stats.total_overtime_minutes || 0) - (a.stats.total_overtime_minutes || 0);
+                    default: return 0;
+                }
+            });
+
+            renderTable(filtered);
+        }
+
+        // --- API CHARTS ---
+        async function initCharts() {
+            try {
+                // Couleurs
+                const colors = {
+                    primary: '#667eea',
+                    success: '#48bb78',
+                    danger: '#f56565',
+                    info: '#ed8936'
+                };
+
+                // Préparation données
+                const labels = employeesData.map(e => e.name);
+                const hoursData = employeesData.map(e => e.stats.total_hours);
+
+                const totalWorked = employeesData.reduce((acc, curr) => acc + curr.stats.total_days_worked, 0);
+                const totalAbsent = employeesData.reduce((acc, curr) => acc + curr.stats.total_days_absent, 0);
+
+                // 1. Barres : Heures
+                new Chart(document.getElementById('hoursChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Heures',
+                            data: hoursData,
+                            backgroundColor: '#667eea',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                // 2. Departments Pie/Bar
+                const deptMap = {};
+                employeesData.forEach(emp => {
+                    const d = emp.department || 'Inconnu';
+                    deptMap[d] = (deptMap[d] || 0) + emp.stats.total_hours;
+                });
+                new Chart(document.getElementById('departmentChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(deptMap),
+                        datasets: [{
+                            data: Object.values(deptMap),
+                            backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                // 3. Status Pie
+                new Chart(document.getElementById('attendanceChart'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Jours Travaillés', 'Absences'],
+                        datasets: [{
+                            data: [totalWorked, totalAbsent],
+                            backgroundColor: [colors.success, colors.danger],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                // 4. Performance Line
+                new Chart(document.getElementById('performanceChart'), {
+                    type: 'line',
+                    data: {
+                        labels: labels, // noms
+                        datasets: [{
+                            label: 'Tendance Heures',
+                            data: hoursData,
+                            borderColor: colors.primary,
+                            tension: 0.4,
+                            fill: true,
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)'
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+            } catch (e) { console.error("Chart Error", e); }
+        }
+
+        // --- GESTION MODALE ---
+        window.openEditModal = function (personId) {
+            // Recherche par ID (comparaison string pour sécurité)
+            const emp = employeesData.find(e => String(e.person_id) === String(personId));
+            if (!emp) return console.error("Employé introuvable");
+
+            currentEmployeeId = emp.person_id;
+            document.getElementById('editPersonId').value = emp.person_id;
+            document.getElementById('editName').value = emp.name;
+            document.getElementById('editDaysInput').value = emp.stats.total_days_worked;
+            document.getElementById('editAbsencesInput').value = emp.stats.total_days_absent;
+            document.getElementById('editHoursInput').value = emp.stats.total_hours;
+
+            modal.style.display = "block";
+        };
+
+        window.closeModal = function () {
+            modal.style.display = "none";
+        };
+
+        // Click outside closes modal
+        window.onclick = function (e) {
+            if (e.target == modal) closeModal();
+        };
+
+        // Submit Form
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const stats = {
+                total_days_worked: document.getElementById('editDaysInput').value,
+                total_days_absent: document.getElementById('editAbsencesInput').value,
+                total_hours: document.getElementById('editHoursInput').value,
+                average_hours_per_day: 0 // sera calculé côté serveur ou ignoré
+            };
+
+            // Petit calcul simple pour l'average
+            if (stats.total_days_worked > 0) {
+                stats.average_hours_per_day = (stats.total_hours / stats.total_days_worked).toFixed(2);
+            }
+
+            try {
+                const res = await fetch('/api/update_employee', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ person_id: currentEmployeeId, stats: stats })
+                });
+                const json = await res.json();
+
+                if (json.success) {
+                    alert('✅ Mis à jour avec succès !');
+                    closeModal();
+                    location.reload();
+                } else {
+                    alert('❌ Erreur : ' + json.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erreur serveur');
+            }
+        });
+
+        // --- INITIALISATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Remplir filtres départements
+            const depts = [...new Set(employeesData.map(e => e.department))].filter(Boolean).sort();
+            depts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.textContent = d;
+                deptFilter.appendChild(opt);
+            });
+
+            // Listeners
+            searchInput.addEventListener('input', filterTable);
+            deptFilter.addEventListener('change', filterTable);
+            sortBy.addEventListener('change', filterTable);
+
+            // Premier rendu
+            filterTable();
+            initCharts();
+        });
+    </script>
+</body>
+
+</html>

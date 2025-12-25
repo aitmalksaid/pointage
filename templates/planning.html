@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion du Planning - Kabana</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #1a237e;
+            --bg: #f8fafc;
+            --white: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--white);
+            padding: 15px 30px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            color: var(--secondary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-back {
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: var(--white);
+            border-right: 1px solid #e2e8f0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #f1f5f9;
+            border-radius: 12px;
+            font-family: inherit;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .employee-list {
+            list-style: none;
+            flex: 1;
+        }
+
+        .employee-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .employee-item:hover {
+            background: #f1f5f9;
+        }
+
+        .employee-item.active {
+            background: #eef2ff;
+            border-left: 4px solid var(--primary);
+        }
+
+        .emp-name {
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .emp-dept {
+            font-size: 11px;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .schedule-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: 0 auto;
+            display: none;
+        }
+
+        .card-header {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+
+        .template-selector {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+
+        .select-styled {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e0;
+            font-family: inherit;
+        }
+
+        .week-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .day-row {
+            display: grid;
+            grid-template-columns: 140px 1fr 1fr 100px;
+            gap: 20px;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .day-label {
+            font-weight: 700;
+            color: #475569;
+        }
+
+        input[type="time"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .day-row.repos-active {
+            opacity: 0.8;
+            background: #fef9c3;
+            border-color: #fde047;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-outline {
+            background: var(--white);
+            border: 2px solid #e2e8f0;
+            color: var(--text-light);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 400px;
+        }
+
+        .btn-emerald {
+            background-color: #10b981;
+            color: white !important;
+        }
+
+        .btn-emerald:hover {
+            background-color: #059669;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>📅 Gestion du Planning</h1>
+        <div style="display:flex; gap:15px;">
+            <a href="/import-planning" class="btn btn-emerald text-white shadow-sm"
+                style="display:flex; align-items:center;">
+                <i class="fas fa-file-excel"></i>
+                <span>Importer Planning</span>
+            </a>
+            <a href="/heures-travail" class="btn btn-outline" style="border-color:#10b981; color:#10b981;">🕒 Heures de
+                Travail</a>
+            <a href="/planning-fonctions" class="btn btn-outline">🛠️ Plannings par Métier</a>
+            <a href="/dashboard" class="btn-back" style="display:flex; align-items:center;">← Dashboard</a>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <label
+                    style="font-size:11px; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:8px; display:block;">Choix
+                    de la Semaine</label>
+                <input type="date" id="weekPicker" class="search-input">
+                <input type="text" id="searchEmp" class="search-input" placeholder="Rechercher employé...">
+            </div>
+            <ul class="employee-list" id="empList">
+                {% for emp in employees %}
+                <li class="employee-item"
+                    onclick="selectEmployee('{{ emp.person_id }}', '{{ emp.name }}', '{{ emp.department }}', this)">
+                    <div class="emp-dept">{{ emp.department }}</div>
+                    <div class="emp-name">{{ emp.name }}</div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="content">
+            <div id="emptyState" style="text-align:center; margin-top:150px; color:#94a3b8;">
+                <h2>Sélectionnez un employé pour gérer ses horaires</h2>
+            </div>
+
+            <div id="scheduleCard" class="schedule-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title" id="selectedEmpName">Nom Employé</h2>
+                        <div id="selectedEmpDept" style="font-size:12px; color:var(--primary); font-weight:700;">
+                            DÉPARTEMENT</div>
+                        <div id="weekDisplay"
+                            style="color:var(--text-light); font-weight:600; margin-top:5px; font-size:14px;"></div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="/import-planning" class="btn btn-emerald text-white shadow-sm"
+                            style="display:flex; align-items:center; gap:8px;">
+                            <i class="fas fa-file-excel"></i>
+                            <span>Importer Excel</span>
+                        </a>
+                        <button class="btn btn-light shadow-sm" onclick="exportPlanning()"
+                            style="color:var(--secondary); background:white;">
+                            <i class="fas fa-file-export me-2"></i>Exporter
+                        </button>
+                        <button class="btn btn-primary" onclick="saveWeekPlanning()">💾 Enregistrer la Semaine</button>
+                    </div>
+                </div>
+
+                <div id="fallbackMsg"
+                    style="display:none; background:#fff7ed; color:#9a3412; padding:12px; border-radius:12px; border:1px solid #ffedd5; font-size:13px; margin-bottom:15px; border-left:4px solid #f97316;">
+                    Exemple de message d'héritage
+                </div>
+
+                <div class="template-selector">
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:15px;">
+                            <span style="font-weight:600; font-size:13px;">Modèles :</span>
+                            <select id="templateSelect" class="select-styled"
+                                onchange="applyTemplateToForm(this.value)">
+                                <option value="">-- Choisir un modèle --</option>
+                            </select>
+                            <button class="btn btn-outline" onclick="promptSaveCurrentAsTemplate()"
+                                style="padding:6px 12px; font-size:11px;">Créer modèle</button>
+                        </div>
+                        <div
+                            style="display:flex; align-items:center; gap:15px; border-top:1px solid #e2e8f0; padding-top:10px;">
+                            <span style="font-weight:600; font-size:13px;">Magie :</span>
+                            <button class="btn btn-outline" onclick="importFunctionPlanning()"
+                                style="padding:8px 15px; font-size:12px; flex:1; justify-content:center; border-style:dashed; border-color:var(--primary); color:var(--primary)">✨
+                                Importer Planning de la Fonction</button>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="planningForm" class="week-grid">
+                    <!-- Généré par JS -->
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sauvegarde Modèle -->
+    <div id="templateModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom:20px;">Nom du nouveau modèle</h3>
+            <input type="text" id="newTemplateName" class="search-input" placeholder="ex: Cuisine Matin">
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+                <button class="btn btn-primary" onclick="saveAsTemplate()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+        let currentPersonId = null;
+        let currentDept = null;
+        let currentWeekMonday = null;
+        let allTemplates = [];
+
+        window.onload = () => {
+            const today = new Date();
+            const mon = getMonday(today);
+            const picker = document.getElementById('weekPicker');
+            picker.value = mon;
+            currentWeekMonday = mon;
+
+            // Initialiser l'affichage
+            updateWeekDisplay();
+
+            loadTemplates();
+
+            // Écouteur de changement de date plus robuste
+            picker.addEventListener('change', (e) => {
+                const selectedDate = new Date(e.target.value);
+                const newMonday = getMonday(selectedDate);
+
+                // Mettre à jour la variable globale
+                currentWeekMonday = newMonday;
+
+                // Recaler l'input date sur le lundi si nécessaire
+                if (e.target.value !== newMonday) {
+                    e.target.value = newMonday;
+                }
+
+                updateWeekDisplay();
+
+                // Recharger les données si un employé est sélectionné
+                if (currentPersonId) {
+                    loadEmployeePlanning();
+                }
+            });
+        };
+
+        function getMonday(d) {
+            d = new Date(d);
+            var day = d.getDay(),
+                diff = d.getDate() - day + (day == 0 ? -6 : 1); // ajuster quand day == 0 (Dimanche)
+            return new Date(d.setDate(diff)).toISOString().split('T')[0];
+        }
+
+        async function loadTemplates() {
+            try {
+                const res = await fetch('/api/templates');
+                const json = await res.json();
+                if (json.success) {
+                    allTemplates = json.templates;
+                    const select = document.getElementById('templateSelect');
+                    select.innerHTML = '<option value="">-- Choisir un modèle --</option>';
+                    allTemplates.forEach(t => select.innerHTML += `<option value="${t.id}">${t.nom}</option>`);
+                }
+            } catch (e) { }
+        }
+
+        function selectEmployee(personId, name, dept, el) {
+            document.querySelectorAll('.employee-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            currentPersonId = personId;
+            currentDept = dept;
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('scheduleCard').style.display = 'block';
+            document.getElementById('selectedEmpName').textContent = name;
+            document.getElementById('selectedEmpDept').textContent = dept;
+            loadEmployeePlanning();
+        }
+
+        async function loadEmployeePlanning() {
+            // Feedback visuel de chargement
+            document.getElementById('planningForm').style.opacity = '0.5';
+
+            updateWeekDisplay();
+            try {
+                const res = await fetch(`/api/get_planning/${currentPersonId}?date=${currentWeekMonday}`);
+                const json = await res.json();
+
+                // On affiche si c'est un planning hérité de la fonction
+                const msg = document.getElementById('fallbackMsg');
+                if (json.is_fallback) {
+                    msg.style.display = 'block';
+                    msg.innerHTML = `⚠️ Affichage de l'horaire standard de la fonction <b>${currentDept}</b> (non encore personnalisé pour cette semaine).`;
+                } else {
+                    msg.style.display = 'none';
+                }
+
+                renderPlanningForm(json.success ? json.planning : {});
+            } catch (e) {
+                console.error("Erreur chargement planning", e);
+            } finally {
+                document.getElementById('planningForm').style.opacity = '1';
+            }
+        }
+
+        function renderPlanningForm(data) {
+            const form = document.getElementById('planningForm');
+            form.innerHTML = '';
+
+            const baseDate = new Date(currentWeekMonday);
+
+            days.forEach((day, i) => {
+                const d = data[day] || { debut: '09:00', fin: '17:00', repos: false };
+
+                // Calcul précis de la date du jour affiché
+                const curDate = new Date(baseDate);
+                curDate.setDate(baseDate.getDate() + i);
+
+                // Formatage "22 déc."
+                const dStr = curDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+                form.innerHTML += `
+                    <div class="day-row ${d.repos ? 'repos-active' : ''}">
+                        <div class="day-label">
+                            ${day}
+                            <div style="font-size:12px; opacity:0.6; font-weight:400; margin-top:2px;">${dStr}</div>
+                        </div>
+                        <div><input type="text" class="time-in" value="${d.debut}" placeholder="HH:MM" ${d.repos ? 'disabled' : ''} style="width:100px; text-align:center; border:1px solid #cbd5e1; border-radius:6px; padding:6px;"></div>
+                        <div><input type="text" class="time-out" value="${d.fin}" placeholder="HH:MM" ${d.repos ? 'disabled' : ''} style="width:100px; text-align:center; border:1px solid #cbd5e1; border-radius:6px; padding:6px;"></div>
+                        <div style="text-align:center"><input type="checkbox" class="is-repos" onchange="toggleReposRow(this)" ${d.repos ? 'checked' : ''} title="Repos / Absent"></div>
+                    </div>`;
+            });
+        }
+
+        function toggleReposRow(cb) {
+            const row = cb.closest('.day-row');
+            row.classList.toggle('repos-active', cb.checked);
+            row.querySelectorAll('input[type="text"]').forEach(i => i.disabled = cb.checked);
+        }
+
+        async function importFunctionPlanning() {
+            if (!currentDept) return;
+            try {
+                const res = await fetch(`/api/function_planning/${encodeURIComponent(currentDept)}`);
+                const json = await res.json();
+                if (json.success && Object.keys(json.planning).length > 0) {
+                    renderPlanningForm(json.planning);
+                } else {
+                    alert("Aucun planning standard défini pour la fonction : " + currentDept);
+                }
+            } catch (e) { }
+        }
+
+        async function saveWeekPlanning() {
+            const planning = {};
+            const rows = document.querySelectorAll('.day-row');
+            rows.forEach((row, i) => {
+                planning[days[i]] = {
+                    debut: row.querySelector('.time-in').value,
+                    fin: row.querySelector('.time-out').value,
+                    repos: row.querySelector('.is-repos').checked
+                };
+            });
+
+            // Animation bouton
+            const btn = document.querySelector('button[onclick="saveWeekPlanning()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '💾 Enregistrement...';
+
+            try {
+                await fetch('/api/save_planning', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ person_id: currentPersonId, date: currentWeekMonday, planning })
+                });
+
+                // Feedback succès
+                btn.innerHTML = '✅ Enregistré !';
+                btn.style.backgroundColor = '#10b981';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.backgroundColor = '';
+                }, 2000);
+            } catch (e) {
+                alert("Erreur lors de l'enregistrement");
+            }
+        }
+
+        function updateWeekDisplay() {
+            if (!currentWeekMonday) return;
+            const d = new Date(currentWeekMonday);
+            const d2 = new Date(currentWeekMonday);
+            d2.setDate(d.getDate() + 6);
+
+            const dp = document.getElementById('weekDisplay');
+            if (dp) {
+                dp.textContent = `${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} - ${d2.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+            }
+        }
+
+        function promptSaveCurrentAsTemplate() { document.getElementById('templateModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('templateModal').style.display = 'none'; }
+        async function saveAsTemplate() {
+            const nom = document.getElementById('newTemplateName').value;
+            const planning = {};
+            document.querySelectorAll('.day-row').forEach((row, i) => {
+                planning[days[i]] = { debut: row.querySelector('.time-in').value, fin: row.querySelector('.time-out').value, repos: row.querySelector('.is-repos').checked };
+            });
+            await fetch('/api/save_template', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nom, planning }) });
+            closeModal(); loadTemplates();
+        }
+
+        document.getElementById('searchEmp').oninput = (e) => {
+            const t = e.target.value.toLowerCase();
+            document.querySelectorAll('.employee-item').forEach(el => el.style.display = el.textContent.toLowerCase().includes(t) ? 'block' : 'none');
+        };
+    </script>
+</body>
+
+</html>

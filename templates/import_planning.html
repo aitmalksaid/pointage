@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Planning Hebdomadaire - Kabana</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #475569;
+            --success: #16a34a;
+            --background: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: #1e293b;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upload-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .drop-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            margin: 2rem 0;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .preview-box {
+            margin-top: 2rem;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            display: none;
+        }
+
+        .log-box {
+            background: #1e293b;
+            color: #a5b4fc;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 1rem;
+            text-align: left;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .btn-kabana {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-kabana:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/planning" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left"></i> Retour</a>
+            <h1 class="m-0 h5 fw-bold"><i class="fas fa-file-import me-2 text-primary"></i>Importation Planning
+                Hebdomadaire</h1>
+        </div>
+    </div>
+
+    <div class="container pb-5">
+        <div class="upload-card">
+            <div class="mb-4">
+                <i class="fas fa-file-excel text-success" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <h2 class="h4 fw-bold">Importer un fichier de planning</h2>
+                <p class="text-secondary">Formats acceptés : .xlsx, .xls, .pdf</p>
+                <div class="alert alert-info text-start d-inline-block mt-2">
+                    <small>
+                        <i class="fas fa-info-circle me-1"></i> Le fichier doit contenir :
+                        <ul class="mb-0 ps-3 mt-1">
+                            <li>Une colonne pour le <b>Nom</b> des employés</li>
+                            <li>Des colonnes pour les jours (Lundi, Mardi...)</li>
+                            <li>Formats horaires supportés : <code>8am-4pm</code>, <code>10:00-18:00</code>,
+                                <code>CONGÉ</code>
+                            </li>
+                        </ul>
+                    </small>
+                </div>
+            </div>
+
+            <form id="uploadForm">
+                <div class="row g-3 mb-4 text-start">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Date de début de la semaine (Lundi)</label>
+                        <input type="date" class="form-control" name="week_start" id="weekStart" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Département (Optionnel)</label>
+                        <select class="form-select" name="department" id="departmentFilter">
+                            <option value="">Tous les départements</option>
+                            <option value="cuisine">Cuisine</option>
+                            <option value="service">Salle / Service</option>
+                            <option value="bar">Bar</option>
+                        </select>
+                        <div class="form-text">Aide à filtrer si des noms sont similaires.</div>
+                    </div>
+                </div>
+
+                <div class="drop-zone" id="dropZone">
+                    <i class="fas fa-cloud-upload-alt fa-2x mb-3 text-secondary"></i>
+                    <p class="mb-1 fw-medium">Glissez votre fichier ici ou cliquez pour parcourir</p>
+                    <input type="file" name="file" id="fileInput" hidden accept=".xlsx, .xls, .pdf">
+                    <span id="fileName" class="d-block mt-2 text-primary"></span>
+                </div>
+
+                <button type="submit" class="btn btn-kabana w-100" id="btnSubmit">
+                    <i class="fas fa-magic me-2"></i>Analyser et Importer
+                </button>
+            </form>
+
+            <div class="log-box" id="logBox"></div>
+        </div>
+    </div>
+
+    <script>
+        // Gestion de la date de semaine (Lundi par défaut)
+        const dateInput = document.getElementById('weekStart');
+        dateInput.addEventListener('change', (e) => {
+            const date = new Date(e.target.value);
+            const day = date.getDay();
+            if (day !== 1) { // Si ce n'est pas Lundi
+                alert("Veuillez sélectionner un Lundi pour le début de semaine.");
+                // Option : Ajuster automatiquement au lundi précédent
+                const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+                date.setDate(diff);
+                e.target.value = date.toISOString().split('T')[0];
+            }
+        });
+
+        // Set default date to next Monday
+        const today = new Date();
+        const nextMonday = new Date(today.setDate(today.getDate() + ((1 + 7 - today.getDay()) % 7)));
+        dateInput.value = nextMonday.toISOString().split('T')[0];
+
+        // Drag & Drop UI
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                fileName.textContent = fileInput.files[0].name;
+                fileName.style.fontWeight = 'bold';
+            }
+        });
+
+        // Upload Logic
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const logBox = document.getElementById('logBox');
+            const btn = document.getElementById('btnSubmit');
+
+            logBox.style.display = 'block';
+            logBox.innerHTML = '> Démarrage de l\'analyse...\n';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Traitement en cours...';
+
+            try {
+                const res = await fetch('/api/import-planning', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    logBox.innerHTML += `> SUCCÈS : ${data.message}\n`;
+                    logBox.innerHTML += `> ${data.details.updated} plannings mis à jour.\n`;
+                    logBox.innerHTML += `> ${data.details.errors.length} erreurs.\n`;
+
+                    if (data.details.logs && data.details.logs.length) {
+                        logBox.innerHTML += '\n--- DÉTAILS ---\n';
+                        data.details.logs.forEach(l => logBox.innerHTML += `> ${l}\n`);
+                    }
+
+                    btn.innerHTML = '<i class="fas fa-check me-2"></i>Terminé';
+                    btn.classList.add('btn-success');
+                    btn.classList.remove('btn-kabana');
+
+                    setTimeout(() => {
+                        window.location.href = '/planning';
+                    }, 2000);
+                } else {
+                    logBox.innerHTML += `> ERREUR : ${data.message}\n`;
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Réessayer';
+                }
+            } catch (err) {
+                logBox.innerHTML += `> ERREUR CRITIQUE : ${err.message}\n`;
+                btn.disabled = false;
+                btn.innerHTML = 'Réessayer';
+            }
+        });
+    </script>
+</body>
+
+</html>

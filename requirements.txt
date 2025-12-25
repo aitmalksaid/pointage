@@ -1,0 +1,8 @@
+flask
+pandas
+openpyxl
+xlrd
+reportlab
+mysql-connector-python
+pdfplumber
+werkzeug

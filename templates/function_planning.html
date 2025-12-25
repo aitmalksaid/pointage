@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planning par Fonction - Kabana</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #1a237e;
+            --bg: #f8fafc;
+            --white: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: var(--white);
+            padding: 15px 30px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            color: var(--secondary);
+            font-weight: 700;
+        }
+
+        .btn-back {
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .selector-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .select-styled {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: 2px solid #f1f5f9;
+            font-family: inherit;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .select-styled:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .schedule-card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .card-header {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .week-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .day-row {
+            display: grid;
+            grid-template-columns: 140px 1fr 1fr 100px;
+            gap: 20px;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid transparent;
+        }
+
+        .day-label {
+            font-weight: 700;
+            color: #475569;
+        }
+
+        input[type="time"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .day-row.repos-active {
+            opacity: 0.8;
+            background: #fef9c3;
+            border-color: #fde047;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .info-box {
+            background: #e0e7ff;
+            color: #4338ca;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            line-height: 1.5;
+            border-left: 4px solid #4338ca;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>🛠️ Planning par Fonction</h1>
+        <div style="display:flex; gap:15px; align-items:center;">
+            <a href="/heures-travail" class="btn-back" style="color:#10b981;">🕒 Heures de Travail</a>
+            <a href="/planning" class="btn-back">📅 Planning Individuel</a>
+            <a href="/" class="btn-back">← Accueil</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="info-box">
+            <strong>Comment ça marche ?</strong><br>
+            Définissez ici l'horaire standard pour chaque type de métier. Vous pourrez ensuite importer ces horaires
+            d'un seul clic dans la fiche individuelle de vos employés pour chaque semaine.
+        </div>
+
+        <div class="selector-card">
+            <span style="font-weight: 700; color: var(--secondary)">Choisir la Fonction :</span>
+            <select id="deptSelect" class="select-styled" onchange="loadDeptPlanning(this.value)">
+                <option value="">-- Sélectionner --</option>
+                {% for dept in departments %}
+                <option value="{{ dept }}">{{ dept }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="scheduleCard" class="schedule-card">
+            <div class="card-header">
+                <h2 id="selectedDeptName" style="color: var(--secondary)">Nom Fonction</h2>
+                <button class="btn btn-primary" onclick="saveDeptPlanning()">Enregistrer l'Horaire Standard</button>
+            </div>
+
+            <div id="dayGrid" class="week-grid">
+                <!-- Généré par JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+        let currentDept = null;
+
+        async function loadDeptPlanning(dept) {
+            if (!dept) {
+                document.getElementById('scheduleCard').style.display = 'none';
+                return;
+            }
+            currentDept = dept;
+            document.getElementById('selectedDeptName').textContent = dept;
+            document.getElementById('scheduleCard').style.display = 'block';
+
+            try {
+                const res = await fetch(`/api/function_planning/${encodeURIComponent(dept)}`);
+                const json = await res.json();
+                renderGrid(json.planning || {});
+            } catch (e) { console.error(e); }
+        }
+
+        function renderGrid(data) {
+            const grid = document.getElementById('dayGrid');
+            grid.innerHTML = '';
+
+            days.forEach((day, i) => {
+                const d = data[day] || { debut: '09:00', fin: '17:00', repos: false };
+                grid.innerHTML += `
+                    <div class="day-row ${d.repos ? 'repos-active' : ''}">
+                        <div class="day-label">${day}</div>
+                        <div>
+                            <label style="font-size:10px; color:var(--text-light); display:block; margin-bottom:4px;">DÉBUT</label>
+                            <input type="text" class="time-in" value="${d.debut}" placeholder="HH:MM" ${d.repos ? 'disabled' : ''} style="text-align:center;">
+                        </div>
+                        <div>
+                            <label style="font-size:10px; color:var(--text-light); display:block; margin-bottom:4px;">FIN</label>
+                            <input type="text" class="time-out" value="${d.fin}" placeholder="HH:MM" ${d.repos ? 'disabled' : ''} style="text-align:center;">
+                        </div>
+                        <div style="text-align:center">
+                            <label style="font-size:10px; color:var(--text-light); display:block; margin-bottom:4px;">REPOS</label>
+                            <input type="checkbox" class="is-repos" onchange="toggleReposRow(this)" ${d.repos ? 'checked' : ''}>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleReposRow(cb) {
+            const row = cb.closest('.day-row');
+            row.classList.toggle('repos-active', cb.checked);
+            row.querySelectorAll('input[type="text"]').forEach(i => i.disabled = cb.checked);
+        }
+
+        async function saveDeptPlanning() {
+            const btn = document.querySelector('.btn-primary');
+            const originalText = btn.textContent;
+            btn.textContent = 'Enregistrement...';
+            btn.disabled = true;
+
+            const planning = {};
+            const rows = document.querySelectorAll('.day-row');
+            rows.forEach((row, i) => {
+                planning[days[i]] = {
+                    debut: row.querySelector('.time-in').value,
+                    fin: row.querySelector('.time-out').value,
+                    repos: row.querySelector('.is-repos').checked
+                };
+            });
+
+            try {
+                const res = await fetch('/api/save_function_planning', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ department: currentDept, planning })
+                });
+
+                const json = await res.json();
+                if (json.success) {
+                    btn.textContent = '✅ Enregistré avec succès !';
+                    btn.style.background = '#10b981';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.background = '';
+                        btn.disabled = false;
+                    }, 2000);
+                } else {
+                    alert("Erreur lors de l'enregistrement : " + (json.message || "Erreur inconnue"));
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Erreur de connexion au serveur.");
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>
