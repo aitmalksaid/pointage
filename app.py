@@ -123,6 +123,44 @@ def anomalies():
 
     return render_template('anomalies.html', anomalies=anomalies_list)
 
+@app.route('/reconciliation')
+def reconciliation():
+    """Page de comparaison des noms entre Pointage et Planning"""
+    data_id = session.get('data_id')
+    
+    # 1. Liste des noms du Pointage (Excel)
+    names_pointage = set()
+    if data_id and data_id in GLOBAL_DATA_STORE:
+        for emp in GLOBAL_DATA_STORE[data_id]['employees_data']:
+            if emp.get('name'):
+                names_pointage.add(emp['name'].strip())
+    
+    # 2. Liste des noms du Planning (DB)
+    names_planning = set()
+    try:
+        db = DBManager()
+        db_employees = db.get_all_employees() # Retourne liste de dicts
+        for emp in db_employees:
+            if emp.get('name'):
+                names_planning.add(emp['name'].strip())
+    except:
+        pass # Si erreur DB, la liste restera vide
+
+    # 3. Comparaison
+    # Noms dans le pointage mais pas dans le planning
+    pointage_only = sorted(list(names_pointage - names_planning))
+    
+    # Noms dans le planning mais pas dans le pointage
+    planning_only = sorted(list(names_planning - names_pointage))
+    
+    # Ceux qui matchent
+    match_count = len(names_pointage.intersection(names_planning))
+
+    return render_template('reconciliation.html', 
+                         pointage_only=pointage_only,
+                         planning_only=planning_only,
+                         match_count=match_count)
+
 @app.route('/upload-page')
 def index():
     """Page d'importation du fichier Excel"""

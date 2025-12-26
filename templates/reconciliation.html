@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Comparaison Noms - Kabana</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            padding: 20px;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            margin: 0;
+            color: #4F46E5;
+            font-size: 22px;
+        }
+
+        .btn {
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: #6b7280;
+            color: white;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .list-group {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .list-item {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .tag {
+            font-size: 0.8em;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .match-card {
+            margin-bottom: 20px;
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Comparaison des Noms (Planning vs Pointage)</h1>
+            <a href="{{ url_for('dashboard') }}" class="btn">← Retour</a>
+        </div>
+
+        <div class="match-card">
+            <strong>{{ match_count }}</strong> employés correspondent parfaitement entre les deux systèmes.
+        </div>
+
+        <div class="grid">
+            <!-- Colonne GAUCHE : Dans Pointage MAIS PAS Planning -->
+            <div class="card" style="border-top: 5px solid #f59e0b;">
+                <h2>
+                    <span>📄</span> Trouvés dans Excel (Pointage)
+                    <br><small style="color: #6b7280; font-weight: normal;">Mais absents du Planning SQL</small>
+                </h2>
+                <div
+                    style="background: #fffbeb; padding: 10px; font-size: 0.9em; margin-bottom: 10px; border-radius: 6px;">
+                    👉 Ces noms sont dans la pointeuse mais le logiciel ne trouve pas leur planning.
+                    <br><strong>Cause probable :</strong> Orthographe différente ou nouvel employé.
+                </div>
+
+                {% if pointage_only %}
+                <ul class="list-group">
+                    {% for name in pointage_only %}
+                    <li class="list-item">
+                        <strong>{{ name }}</strong>
+                        <span class="tag">Inconnu au planning</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p style="color: green; text-align: center;">Tout est OK !</p>
+                {% endif %}
+            </div>
+
+            <!-- Colonne DROITE : Dans Planning MAIS PAS Pointage -->
+            <div class="card" style="border-top: 5px solid #6366f1;">
+                <h2>
+                    <span>📅</span> Trouvés dans Planning
+                    <br><small style="color: #6b7280; font-weight: normal;">Mais absents de l'Excel</small>
+                </h2>
+                <div
+                    style="background: #eef2ff; padding: 10px; font-size: 0.9em; margin-bottom: 10px; border-radius: 6px;">
+                    👉 Ces employés sont prévus au planning mais n'ont rien pointé.
+                    <br><strong>Cause probable :</strong> Absence, Congés ou Orthographe différente.
+                </div>
+
+                {% if planning_only %}
+                <ul class="list-group">
+                    {% for name in planning_only %}
+                    <li class="list-item">
+                        <span>{{ name }}</span>
+                        <span class="tag" style="background: #e0e7ff; color: #3730a3;">Pas de pointage</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p style="color: green; text-align: center;">Tout le monde est là !</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
