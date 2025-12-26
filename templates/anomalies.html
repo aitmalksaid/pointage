@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Anomalies de Pointage - Kabana</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338ca;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-main);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .btn-back {
+            background-color: #6b7280;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .btn-back:hover {
+            background-color: #4b5563;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .alert-box {
+            background-color: #fee2e2;
+            border-left: 5px solid var(--danger);
+            color: #b91c1c;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 1000px;
+            /* Force minimum width to align columns well */
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 14px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background-color: #f9fafb;
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        tr:hover {
+            background-color: #f3f4f6;
+        }
+
+        .badge-danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        .icon-check {
+            font-size: 40px;
+            color: #10b981;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Analyse des Anomalies</h1>
+            <a href="{{ url_for('dashboard') }}" class="btn-back">← Retour au Dashboard</a>
+        </div>
+
+        {% if anomalies %}
+        <div class="alert-box">
+            <strong>Attention :</strong> Nous avons détecté {{ anomalies|length }} cas où un employé a pointé l'entrée
+            mais n'a pas pointé la sortie (Oubli de badge).
+        </div>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employé</th>
+                        <th>Date</th>
+                        <th>Heure Entrée</th>
+                        <th>Heure Sortie</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in anomalies %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ item.name }}</td>
+                        <td>{{ item.date }}</td>
+                        <td style="color: #059669; font-weight: bold;">{{ item.check_in }}</td>
+                        <td style="color: #dc2626; font-weight: bold;">MISSING</td>
+                        <td>
+                            <span class="badge-danger">Sortie Manquante</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="card empty-state">
+            <div class="icon-check">✅</div>
+            <h2>Aucune anomalie détectée !</h2>
+            <p>Tous les pointages d'entrée semblent avoir une sortie correspondante dans ce rapport.</p>
+        </div>
+        {% endif %}
+
+    </div>
+
+</body>
+
+</html>

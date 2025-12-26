@@ -78,6 +78,51 @@ def heures_travail():
     employees = db.get_all_employees()
     return render_template('work_hours.html', employees=employees)
 
+@app.route('/anomalies')
+def anomalies():
+    """Page d'analyse des oublis de pointage"""
+    data_id = session.get('data_id')
+    
+    # Si pas de données en session, on essaie de charger depuis la DB (pour démo)
+    employees = []
+    if data_id and data_id in GLOBAL_DATA_STORE:
+        employees = GLOBAL_DATA_STORE[data_id]['employees_data']
+    else:
+        # Fallback DB si dispo
+        try:
+            db = DBManager()
+            employees = db.get_all_employees_with_detailed_data()
+        except:
+            return redirect(url_for('index'))
+
+    anomalies_list = []
+
+    for emp in employees:
+        dates = emp.get('dates', [])
+        ins = emp.get('check_ins', [])
+        outs = emp.get('check_outs', [])
+        
+        # On parcourt chaque jour
+        for i in range(len(dates)):
+            if i >= len(ins) or i >= len(outs): break
+            
+            d = dates[i]
+            cin = ins[i]
+            cout = outs[i]
+            
+            # CONDITION D'ANOMALIE :
+            # 1. La date est valide (pas '-')
+            # 2. Entrée existe (pas '-' et pas vide)
+            # 3. Sortie EST MANQUANTE ('-' ou vide ou None)
+            if d and d != '-' and cin and cin not in ['-', ''] and (not cout or cout in ['-', '', 'None']):
+                anomalies_list.append({
+                    'name': emp['name'],
+                    'date': d,
+                    'check_in': cin
+                })
+
+    return render_template('anomalies.html', anomalies=anomalies_list)
+
 @app.route('/upload-page')
 def index():
     """Page d'importation du fichier Excel"""
