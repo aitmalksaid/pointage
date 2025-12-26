@@ -135,14 +135,15 @@ def reconciliation():
             if emp.get('name'):
                 names_pointage.add(emp['name'].strip())
     
-    # 2. Liste des noms du Planning (DB)
+    # 2. Liste des noms du Planning (DB - Ceux qui ont des horaires)
     names_planning = set()
     try:
         db = DBManager()
-        db_employees = db.get_all_employees() # Retourne liste de dicts
-        for emp in db_employees:
-            if emp.get('name'):
-                names_planning.add(emp['name'].strip())
+        # On ne prend QUE ceux qui ont un planning réel (table 'planning')
+        planning_names_list = db.get_employees_with_planning()
+        for name in planning_names_list:
+            if name:
+                names_planning.add(name.strip())
     except:
         pass # Si erreur DB, la liste restera vide
 
