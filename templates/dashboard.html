@@ -31,26 +31,32 @@
             background: rgba(255, 255, 255, 0.98);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 30px 40px;
+            padding: 20px 30px;
             margin-bottom: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
         }
 
         h1 {
             color: #1a237e;
-            font-size: 36px;
+            font-size: 28px;
             font-weight: 800;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
+            margin: 0;
+            white-space: nowrap;
         }
 
         .header-actions {
             display: flex;
-            gap: 15px;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .late-tag {
@@ -158,17 +164,17 @@
         }
 
         .btn {
-            padding: 12px 30px;
+            padding: 8px 18px;
             border-radius: 50px;
             border: none;
             font-weight: 600;
-            font-size: 15px;
+            font-size: 13px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .btn-primary {
@@ -708,11 +714,14 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>
-                <span>📊</span>
-                Dashboard
+            <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <h1>
+                    <span>📊</span>
+                    Dashboard
+                </h1>
+
                 <div class="period-picker-header"
-                    style="display: inline-flex; align-items: center; gap: 10px; margin-left: 15px; background: #ebf4ff; padding: 5px 15px; border-radius: 20px; border: 1px solid #bee3f8;">
+                    style="display: inline-flex; align-items: center; gap: 10px; background: #ebf4ff; padding: 5px 15px; border-radius: 20px; border: 1px solid #bee3f8;">
                     <span>📅</span>
                     <input type="date" id="startDate" class="date-mini" title="Date de début"
                         value="{{ current_period.start_date }}">
@@ -732,7 +741,7 @@
                         {% endfor %}
                     </select>
                 </div>
-            </h1>
+            </div>
             <div class="header-actions">
                 <a href="/" class="btn btn-secondary">← Menu</a>
                 <a href="/heures-travail" class="btn btn-secondary">🕒 Heures de Travail</a>
