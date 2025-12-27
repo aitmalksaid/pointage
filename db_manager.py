@@ -285,8 +285,8 @@ class DBManager:
             cursor.close()
             conn.close()
 
-    def get_all_employees_with_detailed_data_filtered(self, year=None, month=None):
-        """Récupère tous les employés avec leurs pointages filtrés par période"""
+    def get_all_employees_with_detailed_data_filtered(self, year=None, month=None, start_date=None, end_date=None):
+        """Récupère tous les employés avec leurs pointages filtrés par période ou plage de dates"""
         conn = self.get_connection()
         if not conn: return []
         cursor = conn.cursor(dictionary=True)
@@ -297,7 +297,15 @@ class DBManager:
             
             # 2. Pour chaque employé, récupérer ses pointages filtrés
             for emp in employees:
-                if year and month:
+                if start_date and end_date:
+                    query = """
+                        SELECT date_pointage, check_in, check_out, minutes, statut
+                        FROM pointages 
+                        WHERE employe_id = %s AND date_pointage BETWEEN %s AND %s 
+                        ORDER BY date_pointage
+                    """
+                    cursor.execute(query, (emp['id'], start_date, end_date))
+                elif year and month:
                     query = """
                         SELECT date_pointage, check_in, check_out, minutes, statut
                         FROM pointages 

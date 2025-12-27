@@ -192,6 +192,31 @@
             background: #f8f9fa;
         }
 
+        .date-mini {
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 13px;
+            color: #2c5282;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-filter-mini {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-filter-mini:hover {
+            background: #764ba2;
+        }
+
         /* Stats Cards */
         .stats-grid {
             display: grid;
@@ -686,10 +711,27 @@
             <h1>
                 <span>📊</span>
                 Dashboard
-                <small
-                    style="font-size: 14px; color: #718096; font-weight: 500; margin-left: 15px; background: #ebf4ff; padding: 5px 15px; border-radius: 20px; border: 1px solid #bee3f8;">
-                    📅 {{ date_range }}
-                </small>
+                <div class="period-picker-header"
+                    style="display: inline-flex; align-items: center; gap: 10px; margin-left: 15px; background: #ebf4ff; padding: 5px 15px; border-radius: 20px; border: 1px solid #bee3f8;">
+                    <span>📅</span>
+                    <input type="date" id="startDate" class="date-mini" title="Date de début"
+                        value="{{ current_period.start_date }}">
+                    <span>au</span>
+                    <input type="date" id="endDate" class="date-mini" title="Date de fin"
+                        value="{{ current_period.end_date }}">
+                    <button onclick="applyDateFilter()" class="btn-filter-mini">Filtrer</button>
+                    <div style="border-left: 1px solid #bee3f8; height: 20px; margin: 0 5px;"></div>
+                    <select id="headerPeriodFilter" onchange="changePeriod(this.value)"
+                        style="border: none; background: transparent; font-size: 13px; color: #2c5282; cursor: pointer; font-weight: 600;">
+                        <option value="">Mois...</option>
+                        {% for p in periods %}
+                        <option value="year={{ p.year }}&month={{ p.month }}" {% if current_period.year|int==p.year|int
+                            and current_period.month|int==p.month|int %}selected{% endif %}>
+                            {{ p.month }}/{{ p.year }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
             </h1>
             <div class="header-actions">
                 <a href="/" class="btn btn-secondary">← Menu</a>
@@ -837,6 +879,16 @@
                 window.location.href = "/dashboard?" + value;
             } else {
                 window.location.href = "/dashboard";
+            }
+        }
+
+        function applyDateFilter() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            if (start && end) {
+                window.location.href = `/dashboard?start_date=${start}&end_date=${end}`;
+            } else {
+                alert("Veuillez sélectionner une date de début et de fin.");
             }
         }
 

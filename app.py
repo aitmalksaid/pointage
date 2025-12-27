@@ -322,9 +322,11 @@ def api_test_db():
     try:
         conn = db.get_connection()
         if conn:
-            cursor = conn.cursor()
+            cursor = conn.cursor(dictionary=True) # Utiliser dictionary=True pour éviter l'erreur de tuple
             cursor.execute("SELECT VERSION()")
-            ver = cursor.fetchone()
+            ver_row = cursor.fetchone()
+            ver = ver_row['VERSION()'] if ver_row and 'VERSION()' in ver_row else "Inconnue"
+            
             db_stats = {}
             cursor.execute("SELECT DISTINCT departement FROM employes")
             db_stats['unique_departments'] = [r['departement'] for r in cursor.fetchall() if r['departement']]
@@ -334,7 +336,7 @@ def api_test_db():
             conn.close()
             return jsonify({
                 'success': True, 
-                'message': f"Connexion réussie ! Version MySQL: {ver[0]}",
+                'message': f"Connexion réussie ! Version MySQL: {ver}",
                 'debug': {'config': config_safe, 'network': net_diag, 'db_stats': db_stats}
             })
         else:
@@ -382,25 +384,31 @@ def dashboard():
     # 2. Récupérer les paramètres de filtrage
     target_year = request.args.get('year')
     target_month = request.args.get('month')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
     
-    # Si non spécifié et qu'on a des périodes, on prend la plus récente
-    if not target_year and not target_month and periods:
+    # Si non spécifié et qu'on a des périodes, on prend la plus récente (si pas de plage de dates)
+    if not target_year and not target_month and not start_date and periods:
         target_year = periods[0]['year']
         target_month = periods[0]['month']
     
     data_id = session.get('data_id')
     employees = []
     
-    # On force la récupération depuis la BDD si une période est spécifiée
-    if target_year and target_month:
-        employees = db.get_all_employees_with_detailed_data_filtered(year=target_year, month=target_month)
+    # On force la récupération depuis la BDD si une période ou plage est spécifiée
+    if (target_year and target_month) or (start_date and end_date):
+        employees = db.get_all_employees_with_detailed_data_filtered(
+            year=target_year, month=target_month, 
+            start_date=start_date, end_date=end_date
+        )
         # On met à jour la session/mémoire avec ces données filtrées pour le PDF/Excel
         new_id = str(uuid.uuid4())
         session['data_id'] = new_id
         GLOBAL_DATA_STORE[new_id] = {
             'employees_data': employees,
             'filepath': None, 'engine': 'xlrd',
-            'year': target_year, 'month': target_month
+            'year': target_year, 'month': target_month,
+            'start_date': start_date, 'end_date': end_date
         }
     elif data_id in GLOBAL_DATA_STORE:
         employees = GLOBAL_DATA_STORE[data_id]['employees_data']
@@ -477,7 +485,7 @@ def dashboard():
                           raw_data=employees,
                           db_message=db_message,
                           periods=periods,
-                          current_period={'year': target_year, 'month': target_month})
+                          current_period={'year': target_year, 'month': target_month, 'start_date': start_date, 'end_date': end_date})
 
 @app.route('/api/update_employee', methods=['POST'])
 def update_employee():
@@ -631,16 +639,24 @@ def api_save_template():
 @app.route('/planning-fonctions')
 def planning_fonctions():
     """Page de gestion des plannings par fonction avec persistance BDD"""
-    data_id = session.get('data_id')
-    departments = []
-    
     db = DBManager()
-    if data_id in GLOBAL_DATA_STORE:
-        emps = GLOBAL_DATA_STORE[data_id]['employees_data']
-    else:
-        emps = db.get_all_employees()
-        
-    departments = sorted(list(set([e['department'] for e in emps if 'department' in e and e['department'] != 'N/A'])))
+    
+    # On récupère toutes les fonctions (départements) existantes en base de données
+    # pour que la liste soit complète, même sans fichier uploadé dans la session
+    conn = db.get_connection()
+    departments = []
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT departement FROM employes WHERE departement IS NOT NULL AND departement != 'N/A'")
+        departments = sorted([r[0] for r in cursor.fetchall()])
+        conn.close()
+    
+    # Fallback sur la session si la BDD est vide
+    if not departments:
+        data_id = session.get('data_id')
+        if data_id in GLOBAL_DATA_STORE:
+            emps = GLOBAL_DATA_STORE[data_id]['employees_data']
+            departments = sorted(list(set([e['department'] for e in emps if 'department' in e and e['department'] != 'N/A'])))
     
     return render_template('function_planning.html', departments=departments)
 
