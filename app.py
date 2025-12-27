@@ -281,6 +281,49 @@ def upload_file():
         print(f"DEBUG: Erreur: {e}")
         return f"Erreur lors du traitement du fichier : {str(e)}", 500
 
+@app.route('/test-db')
+def test_db_page():
+    """Page de diagnostic de la base de données"""
+    return render_template('test_db.html')
+
+@app.route('/api/test-db')
+def api_test_db():
+    """API de diagnostic détaillée pour la BDD"""
+    db = DBManager()
+    config_safe = db.config.copy()
+    if 'password' in config_safe:
+        config_safe['password'] = '******' # Sécurité
+        
+    try:
+        conn = db.get_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT VERSION()")
+            ver = cursor.fetchone()
+            conn.close()
+            return jsonify({
+                'success': True, 
+                'message': f"Connexion réussie ! Version MySQL: {ver[0]}",
+                'debug': {'config': config_safe}
+            })
+        else:
+            return jsonify({
+                'success': False, 
+                'message': "La connexion a renvoyé None (Echec silencieux)",
+                'debug': {'config': config_safe}
+            })
+    except Exception as e:
+        import traceback
+        return jsonify({
+            'success': False, 
+            'message': f"Erreur de connexion : {str(e)}",
+            'debug': {
+                'error': str(e),
+                'traceback': traceback.format_exc(),
+                'config': config_safe
+            }
+        })
+
 @app.route('/dashboard')
 def dashboard():
     """Rendu du dashboard avec persistance BDD TOTALE et filtrage par période"""
