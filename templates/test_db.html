@@ -74,8 +74,15 @@
         <button class="btn" onclick="testConn()">Tester la connexion</button>
 
         <div id="result"></div>
+
+        <div id="networkStatus" style="display:none; margin-top:20px;">
+            <h3>🌐 État du réseau :</h3>
+            <div id="dnsResult" style="padding:10px; border-radius:5px; margin-bottom:10px;"></div>
+            <div id="socketResult" style="padding:10px; border-radius:5px;"></div>
+        </div>
+
         <div id="details" style="display:none; margin-top:20px;">
-            <h3>Détails techniques :</h3>
+            <h3>⚙️ Détails techniques (JSON) :</h3>
             <pre id="errorLog"></pre>
         </div>
     </div>
@@ -99,6 +106,20 @@
                 resDiv.style.display = 'block';
                 resDiv.className = data.success ? 'success' : 'error';
                 resDiv.innerHTML = `<strong>${data.message}</strong>`;
+
+                if (data.debug && data.debug.network) {
+                    const net = data.debug.network;
+                    const netDiv = document.getElementById('networkStatus');
+                    const dns = document.getElementById('dnsResult');
+                    const sock = document.getElementById('socketResult');
+
+                    netDiv.style.display = 'block';
+                    dns.textContent = "DNS (Résolution d'adresse) : " + net.dns_resolution;
+                    dns.style.background = net.dns_resolution.includes('OK') ? '#d1fae5' : '#fee2e2';
+
+                    sock.textContent = "Socket (Port 24140 accessible) : " + net.socket_connection;
+                    sock.style.background = net.socket_connection.includes('OK') ? '#d1fae5' : '#fee2e2';
+                }
 
                 if (data.debug) {
                     details.style.display = 'block';
