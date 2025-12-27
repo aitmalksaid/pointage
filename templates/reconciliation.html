@@ -7,11 +7,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #6366f1;
+            --accent: #c084fc;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            padding: 20px;
-            color: #1f2937;
+            background: radial-gradient(circle at top left, #1e293b, #0f172a);
+            color: #f1f5f9;
+            padding: 40px 20px;
+            min-height: 100vh;
+            margin: 0;
         }
 
         .container {
@@ -22,25 +33,52 @@
         .header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 30px;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            align-items: center;
+            margin-bottom: 40px;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            padding: 25px 35px;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
         h1 {
             margin: 0;
-            color: #4F46E5;
-            font-size: 22px;
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .btn {
             text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            background: #6b7280;
+            padding: 12px 24px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.1);
             color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-5px);
+        }
+
+        .match-card {
+            margin-bottom: 30px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 18px;
+            backdrop-filter: blur(10px);
         }
 
         .grid {
@@ -50,18 +88,40 @@
         }
 
         .card {
-            background: white;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            padding: 0;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .card-header {
             padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.02);
         }
 
         h2 {
             font-size: 18px;
-            margin-bottom: 15px;
+            margin: 0;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            color: #fff;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .info-box {
+            padding: 15px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            line-height: 1.5;
         }
 
         .list-group {
@@ -71,10 +131,16 @@
         }
 
         .list-item {
-            padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
+            padding: 16px;
+            border-bottom: 1px solid var(--glass-border);
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .list-item:hover {
+            background: rgba(255, 255, 255, 0.02);
         }
 
         .list-item:last-child {
@@ -82,21 +148,36 @@
         }
 
         .tag {
-            font-size: 0.8em;
-            padding: 2px 8px;
-            border-radius: 4px;
-            background: #fee2e2;
-            color: #991b1b;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
-        .match-card {
-            margin-bottom: 20px;
-            background: #d1fae5;
-            border: 1px solid #10b981;
-            color: #065f46;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
+        .suggestion {
+            display: block;
+            margin-top: 5px;
+            color: var(--primary);
+            font-size: 13px;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px dashed var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -104,68 +185,77 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔍 Comparaison des Noms (Planning vs Pointage)</h1>
-            <a href="{{ url_for('dashboard') }}" class="btn">← Retour</a>
+            <h1>🔍 Comparaison des Noms (Pointage vs Planning)</h1>
+            <a href="{{ url_for('dashboard') }}" class="btn">← Dashboard</a>
         </div>
 
         <div class="match-card">
-            <strong>{{ match_count }}</strong> employés correspondent parfaitement entre les deux systèmes.
+            🎉 <strong>{{ match_count }}</strong> employés correspondent parfaitement entre les deux systèmes.
         </div>
 
         <div class="grid">
             <!-- Colonne GAUCHE : Dans Pointage MAIS PAS Planning -->
-            <div class="card" style="border-top: 5px solid #f59e0b;">
-                <h2>
-                    <span>📄</span> Trouvés dans Excel (Pointage)
-                    <br><small style="color: #6b7280; font-weight: normal;">Mais absents du Planning SQL</small>
-                </h2>
-                <div
-                    style="background: #fffbeb; padding: 10px; font-size: 0.9em; margin-bottom: 10px; border-radius: 6px;">
-                    👉 Ces noms sont dans la pointeuse mais le logiciel ne trouve pas leur planning.
-                    <br><strong>Cause probable :</strong> Orthographe différente ou nouvel employé.
+            <div class="card">
+                <div class="card-header" style="border-top: 4px solid var(--warning);">
+                    <h2><span>📄</span> Trouvés dans l'Excel</h2>
                 </div>
+                <div class="card-body">
+                    <div class="info-box"
+                        style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2);">
+                        Ces noms sont présents dans les relevés de pointage mais n'ont aucune correspondance dans le
+                        planning SQL.
+                        <br><strong>Causes:</strong> Typo, nom incomplet ou nouvel employé.
+                    </div>
 
-                {% if pointage_only %}
-                <ul class="list-group">
-                    {% for name in pointage_only %}
-                    <li class="list-item">
-                        <strong>{{ name }}</strong>
-                        <span class="tag">Inconnu au planning</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <p style="color: green; text-align: center;">Tout est OK !</p>
-                {% endif %}
+                    {% if pointage_only %}
+                    <ul class="list-group">
+                        {% for name in pointage_only %}
+                        <li class="list-item">
+                            <div>
+                                <strong>{{ name }}</strong>
+                                {% if name in suggestions %}
+                                <span class="suggestion">💡 Ressemble à : <strong>{{ suggestions[name] }}</strong>
+                                    ?</span>
+                                {% endif %}
+                            </div>
+                            <span class="tag" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">Non
+                                planifié</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p style="color: var(--success); text-align: center; padding: 20px;">✅ Tout est synchronisé !</p>
+                    {% endif %}
+                </div>
             </div>
 
             <!-- Colonne DROITE : Dans Planning MAIS PAS Pointage -->
-            <div class="card" style="border-top: 5px solid #6366f1;">
-                <h2>
-                    <span>📅</span> Trouvés dans Planning
-                    <br><small style="color: #6b7280; font-weight: normal;">Mais absents de l'Excel</small>
-                </h2>
-                <div
-                    style="background: #eef2ff; padding: 10px; font-size: 0.9em; margin-bottom: 10px; border-radius: 6px;">
-                    👉 Ces employés sont prévus au planning mais n'ont rien pointé.
-                    <br><strong>Cause probable :</strong> Absence, Congés ou Orthographe différente.
+            <div class="card">
+                <div class="card-header" style="border-top: 4px solid var(--primary);">
+                    <h2><span>📅</span> Trouvés dans le Planning</h2>
                 </div>
+                <div class="card-body">
+                    <div class="info-box"
+                        style="background: rgba(99, 102, 241, 0.1); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.2);">
+                        Ces employés sont programmés dans le planning mais aucune donnée de pointage n'a été trouvée
+                        pour eux dans le fichier importé.
+                    </div>
 
-                {% if planning_only %}
-                <ul class="list-group">
-                    {% for name in planning_only %}
-                    <li class="list-item">
-                        <span>{{ name }}</span>
-                        <span class="tag" style="background: #e0e7ff; color: #3730a3;">Pas de pointage</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% else %}
-                <p style="color: green; text-align: center;">Tout le monde est là !</p>
-                {% endif %}
+                    {% if planning_only %}
+                    <ul class="list-group">
+                        {% for name in planning_only %}
+                        <li class="list-item">
+                            <span>{{ name }}</span>
+                            <span class="tag" style="background: rgba(99, 102, 241, 0.1); color: #818cf8;">Aucun
+                                pointage</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p style="color: var(--success); text-align: center; padding: 20px;">✅ Tout le monde a pointé !</p>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
 </body>
-
-</html>

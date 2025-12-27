@@ -366,18 +366,27 @@ class DBManager:
     def get_employees_with_planning(self):
         """Récupère la liste des noms qui ont au moins un créneau dans le planning"""
         conn = self.get_connection()
+        if not conn: return []
         cursor = conn.cursor()
         try:
-            # On cherche dans la table 'planning' (généré par PDF)
-            # Vérifier si la table planning existe ou si c'est 'plannings' (json)
-            # D'après l'analyse précédente, l'import PDF remplissait une table 'planning' (avec employee_name)
-            # alors que le planning manuel remplit 'plannings' (avec employe_id_str).
-            # On va essayer de lire 'planning' d'abord.
-            cursor.execute("SELECT DISTINCT employee_name FROM planning")
-            results = [row[0] for row in cursor.fetchall() if row[0]]
-            return results
-        except Exception:
-            # Si la table n'existe pas ou erreur, on renvoie vide
+            # 1. Récupérer les ID uniques qui ont un planning
+            cursor.execute("SELECT DISTINCT employe_id_str FROM plannings")
+            emp_ids = [row[0] for row in cursor.fetchall() if row[0]]
+            
+            if not emp_ids:
+                return []
+                
+            # 2. Récupérer les noms correspondants (Séparé pour éviter problèmes de collation JOIN)
+            # On y va par batch ou simple IN clause (si la liste n'est pas trop enorme)
+            names = []
+            if emp_ids:
+                format_strings = ','.join(['%s'] * len(emp_ids))
+                cursor.execute(f"SELECT nom FROM employes WHERE person_id IN ({format_strings})", tuple(emp_ids))
+                names = [row[0] for row in cursor.fetchall() if row[0]]
+                
+            return names
+        except Exception as e:
+            print(f"[ERREUR] get_employees_with_planning: {e}")
             return []
         finally:
             cursor.close()

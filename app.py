@@ -13,6 +13,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 import re
 import uuid
 from db_manager import DBManager  # Import BDD
+import difflib
 
 # --- INITIALISATION DE LA BASE DE DONNÉES ---
 try:
@@ -157,10 +158,23 @@ def reconciliation():
     # Ceux qui matchent
     match_count = len(names_pointage.intersection(names_planning))
 
+    # 4. Fuzzy Matching (Suggestions de correction)
+    suggestions = {}
+    planning_lower_map = {name.lower(): name for name in planning_only}
+    planning_lower_list = list(planning_lower_map.keys())
+
+    for name in pointage_only:
+        # On cherche si un nom "Pointage Only" ressemble à un nom "Planning Only"
+        matches = difflib.get_close_matches(name.lower(), planning_lower_list, n=1, cutoff=0.6)
+        if matches:
+            suggested_name = planning_lower_map[matches[0]]
+            suggestions[name] = suggested_name
+
     return render_template('reconciliation.html', 
                          pointage_only=pointage_only,
                          planning_only=planning_only,
-                         match_count=match_count)
+                         match_count=match_count,
+                         suggestions=suggestions)
 
 @app.route('/upload-page')
 def index():

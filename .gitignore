@@ -11,3 +11,6 @@ reports/
 .vscode/
 aiven_credentials.txt
 acces base donnee.txt
+*.xlsx
+*.pdf
+~$*

@@ -173,6 +173,73 @@
             line-height: 1.5;
             border-left: 4px solid #4338ca;
         }
+
+        /* Responsive Mobile */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+                height: auto;
+                padding: 20px;
+            }
+
+            .header div {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px !important;
+            }
+
+            .btn-back {
+                width: 100%;
+                text-align: center;
+                display: block;
+            }
+
+            .container {
+                margin: 20px auto;
+            }
+
+            .selector-card {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 20px;
+                text-align: center;
+            }
+
+            .select-styled {
+                width: 100%;
+            }
+
+            .schedule-card {
+                padding: 20px;
+            }
+
+            .card-header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .day-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                text-align: center;
+                padding: 20px;
+            }
+
+            .day-row div {
+                width: 100%;
+            }
+
+            .day-row input[type="text"] {
+                width: 100% !important;
+            }
+        }
     </style>
 </head>
 
