@@ -21,11 +21,8 @@ class DBManager:
              self.config['ssl_verify_identity'] = False
 
     def get_connection(self):
-        try:
-            return mysql.connector.connect(**self.config)
-        except mysql.connector.Error as err:
-            print("[ERREUR] Erreur de connexion BDD: " + str(err))
-            return None
+        # On laisse l'exception remonter pour voir l'erreur réelle sur la page de test
+        return mysql.connector.connect(**self.config)
 
     def init_planning_table(self):
         """Initialisation robuste des tables avec migration automatique"""
