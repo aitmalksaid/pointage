@@ -16,8 +16,6 @@ class DBManager:
         
         # Activer SSL si on est sur Aiven (détection via DB_HOST)
         if 'aivencloud' in self.config['host']:
-             # mysql-connector-python utilise ces clés pour forcer SSL sur Aiven
-             self.config['use_ssl'] = True
              self.config['ssl_disabled'] = False
              self.config['ssl_verify_cert'] = False  # Permet de se connecter sans le certificat CA local
              self.config['ssl_verify_identity'] = False
