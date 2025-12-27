@@ -325,11 +325,17 @@ def api_test_db():
             cursor = conn.cursor()
             cursor.execute("SELECT VERSION()")
             ver = cursor.fetchone()
+            db_stats = {}
+            cursor.execute("SELECT DISTINCT departement FROM employes")
+            db_stats['unique_departments'] = [r['departement'] for r in cursor.fetchall() if r['departement']]
+            cursor.execute("SELECT DISTINCT poste FROM employes")
+            db_stats['unique_positions'] = [r['poste'] for r in cursor.fetchall() if r['poste']]
+            
             conn.close()
             return jsonify({
                 'success': True, 
                 'message': f"Connexion réussie ! Version MySQL: {ver[0]}",
-                'debug': {'config': config_safe, 'network': net_diag}
+                'debug': {'config': config_safe, 'network': net_diag, 'db_stats': db_stats}
             })
         else:
             return jsonify({
@@ -339,6 +345,20 @@ def api_test_db():
             })
     except Exception as e:
         import traceback
+        
+        # Stats additionnelles pour comprendre le problème des fonctions
+        db_stats = {}
+        try:
+            conn = db.get_connection()
+            if conn:
+                cursor = conn.cursor(dictionary=True)
+                cursor.execute("SELECT DISTINCT departement FROM employes")
+                db_stats['unique_departments'] = [r['departement'] for r in cursor.fetchall()]
+                cursor.execute("SELECT DISTINCT poste FROM employes")
+                db_stats['unique_positions'] = [r['poste'] for r in cursor.fetchall()]
+                conn.close()
+        except: pass
+
         return jsonify({
             'success': False, 
             'message': f"Erreur de connexion : {str(e)}",
@@ -346,7 +366,8 @@ def api_test_db():
                 'error': str(e),
                 'traceback': traceback.format_exc(),
                 'config': config_safe,
-                'network': net_diag
+                'network': net_diag,
+                'db_stats': db_stats
             }
         })
 
