@@ -291,12 +291,33 @@ def api_test_db():
     """API de diagnostic détaillée pour la BDD"""
     db = DBManager()
     config_safe = db.config.copy()
-    # Ajout de délimiteurs pour voir les espaces cachés
-    config_safe['host_debug'] = f"[{db.config['host']}]"
-    config_safe['host_len'] = len(db.config['host'])
+    host = db.config['host']
+    port = db.config['port']
+    
+    # Diagnostic Réseau
+    net_diag = {}
+    import socket
+    
+    # 1. Test DNS
+    try:
+        ip = socket.gethostbyname(host)
+        net_diag['dns_resolution'] = f"OK (IP: {ip})"
+    except Exception as e:
+        net_diag['dns_resolution'] = f"ÉCHEC: {str(e)}"
+        
+    # 2. Test Socket direct
+    try:
+        s = socket.create_connection((host, port), timeout=3)
+        net_diag['socket_connection'] = "OK (Port accessible)"
+        s.close()
+    except Exception as e:
+        net_diag['socket_connection'] = f"ÉCHEC: {str(e)}"
+
+    config_safe['host_debug'] = f"[{host}]"
+    config_safe['host_len'] = len(host)
     
     if 'password' in config_safe:
-        config_safe['password'] = '******' # Sécurité
+        config_safe['password'] = '******'
         
     try:
         conn = db.get_connection()
@@ -308,13 +329,13 @@ def api_test_db():
             return jsonify({
                 'success': True, 
                 'message': f"Connexion réussie ! Version MySQL: {ver[0]}",
-                'debug': {'config': config_safe}
+                'debug': {'config': config_safe, 'network': net_diag}
             })
         else:
             return jsonify({
                 'success': False, 
-                'message': "La connexion a renvoyé None (Echec silencieux)",
-                'debug': {'config': config_safe}
+                'message': "La connexion a renvoyé None",
+                'debug': {'config': config_safe, 'network': net_diag}
             })
     except Exception as e:
         import traceback
@@ -324,7 +345,8 @@ def api_test_db():
             'debug': {
                 'error': str(e),
                 'traceback': traceback.format_exc(),
-                'config': config_safe
+                'config': config_safe,
+                'network': net_diag
             }
         })
 

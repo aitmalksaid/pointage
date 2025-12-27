@@ -12,6 +12,7 @@ class DBManager:
             'host': os.environ.get('DB_HOST', 'localhost').strip(),
             'database': os.environ.get('DB_NAME', 'kabana_attendance').strip(),
             'port': int(str(os.environ.get('DB_PORT', 3306)).strip()),
+            'use_pure': True, # Utiliser le driver Python pur pour éviter les bugs d'extensions C sur Railway
             'raise_on_warnings': False
         }
         
