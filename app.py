@@ -283,17 +283,40 @@ def upload_file():
 
 @app.route('/dashboard')
 def dashboard():
-    """Rendu du dashboard avec persistance BDD TOTALE"""
+    """Rendu du dashboard avec persistance BDD TOTALE et filtrage par période"""
+    db = DBManager()
+    
+    # 1. Récupérer les périodes disponibles
+    periods = db.get_available_periods()
+    
+    # 2. Récupérer les paramètres de filtrage
+    target_year = request.args.get('year')
+    target_month = request.args.get('month')
+    
+    # Si non spécifié et qu'on a des périodes, on prend la plus récente
+    if not target_year and not target_month and periods:
+        target_year = periods[0]['year']
+        target_month = periods[0]['month']
+    
     data_id = session.get('data_id')
     employees = []
     
-    # 1. Tentative mémoire
-    if data_id in GLOBAL_DATA_STORE:
+    # On force la récupération depuis la BDD si une période est spécifiée
+    if target_year and target_month:
+        employees = db.get_all_employees_with_detailed_data_filtered(year=target_year, month=target_month)
+        # On met à jour la session/mémoire avec ces données filtrées pour le PDF/Excel
+        new_id = str(uuid.uuid4())
+        session['data_id'] = new_id
+        GLOBAL_DATA_STORE[new_id] = {
+            'employees_data': employees,
+            'filepath': None, 'engine': 'xlrd',
+            'year': target_year, 'month': target_month
+        }
+    elif data_id in GLOBAL_DATA_STORE:
         employees = GLOBAL_DATA_STORE[data_id]['employees_data']
     else:
-        # 2. Tentative BDD (Reconstruction complète)
-        db = DBManager()
-        employees = db.get_all_employees_with_detailed_data()
+        # Fallback : toutes les données
+        employees = db.get_all_employees_with_detailed_data_filtered()
         if employees:
             new_id = str(uuid.uuid4())
             session['data_id'] = new_id
@@ -362,7 +385,9 @@ def dashboard():
                           global_stats=global_stats, 
                           date_range=date_range,
                           raw_data=employees,
-                          db_message=db_message)
+                          db_message=db_message,
+                          periods=periods,
+                          current_period={'year': target_year, 'month': target_month})
 
 @app.route('/api/update_employee', methods=['POST'])
 def update_employee():

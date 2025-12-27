@@ -737,6 +737,18 @@
         <!-- Search & Filter -->
         <div class="search-section">
             <div class="search-group">
+                <label>Période d'Historique</label>
+                <select id="periodFilter" class="search-input" onchange="changePeriod(this.value)">
+                    {% for p in periods %}
+                    <option value="year={{ p.year }}&month={{ p.month }}" {% if current_period.year|int==p.year|int and
+                        current_period.month|int==p.month|int %}selected{% endif %}>
+                        {{ p.month }}/{{ p.year }}
+                    </option>
+                    {% endfor %}
+                    <option value="" {% if not current_period.year %}selected{% endif %}>Toutes les données</option>
+                </select>
+            </div>
+            <div class="search-group">
                 <label>Rechercher un employé</label>
                 <input type="text" id="searchInput" class="search-input" placeholder="Nom ou ID...">
             </div>
@@ -791,6 +803,15 @@
     </script>
 
     <script>
+        // --- GESTION DE LA PERIODE ---
+        function changePeriod(value) {
+            if (value) {
+                window.location.href = "/dashboard?" + value;
+            } else {
+                window.location.href = "/dashboard";
+            }
+        }
+
         // --- DONNEES GLOBALES (Récupération sécurisée) ---
         const employeesData = JSON.parse(document.getElementById('employees-data').textContent);
 

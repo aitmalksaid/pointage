@@ -286,8 +286,8 @@ class DBManager:
             cursor.close()
             conn.close()
 
-    def get_all_employees_with_detailed_data(self):
-        """Récupère tous les employés avec leurs pointages détaillés"""
+    def get_all_employees_with_detailed_data_filtered(self, year=None, month=None):
+        """Récupère tous les employés avec leurs pointages filtrés par période"""
         conn = self.get_connection()
         if not conn: return []
         cursor = conn.cursor(dictionary=True)
@@ -296,12 +296,22 @@ class DBManager:
             cursor.execute("SELECT id, person_id, nom as name, departement as department, poste as position, date_embauche as joining_date FROM employes")
             employees = cursor.fetchall()
             
-            # 2. Pour chaque employé, récupérer ses pointages
+            # 2. Pour chaque employé, récupérer ses pointages filtrés
             for emp in employees:
-                cursor.execute("""
-                    SELECT date_pointage, check_in, check_out, minutes, statut
-                    FROM pointages WHERE employe_id = %s ORDER BY date_pointage
-                """, (emp['id'],))
+                if year and month:
+                    query = """
+                        SELECT date_pointage, check_in, check_out, minutes, statut
+                        FROM pointages 
+                        WHERE employe_id = %s AND YEAR(date_pointage) = %s AND MONTH(date_pointage) = %s 
+                        ORDER BY date_pointage
+                    """
+                    cursor.execute(query, (emp['id'], int(year), int(month)))
+                else:
+                    cursor.execute("""
+                        SELECT date_pointage, check_in, check_out, minutes, statut
+                        FROM pointages WHERE employe_id = %s ORDER BY date_pointage
+                    """, (emp['id'],))
+                
                 pointages = cursor.fetchall()
                 
                 emp['dates'] = [str(p['date_pointage']) for p in pointages]
@@ -310,7 +320,23 @@ class DBManager:
                 emp['attended_minutes'] = [p['minutes'] for p in pointages]
                 emp['statuses'] = [p['statut'] for p in pointages]
             
-            return employees
+            return [e for e in employees if e['dates']] # On ne retourne que ceux qui ont des données pour la période
+        finally:
+            cursor.close()
+            conn.close()
+
+    def get_available_periods(self):
+        """Récupère la liste des mois/années disponibles dans la base de données"""
+        conn = self.get_connection()
+        if not conn: return []
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute("""
+                SELECT DISTINCT YEAR(date_pointage) as year, MONTH(date_pointage) as month 
+                FROM pointages 
+                ORDER BY year DESC, month DESC
+            """)
+            return cursor.fetchall()
         finally:
             cursor.close()
             conn.close()
