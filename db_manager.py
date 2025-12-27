@@ -5,12 +5,13 @@ import os
 
 class DBManager:
     def __init__(self):
+        # On ajoute .strip() pour supprimer les espaces invisibles fréquents sur Railway
         self.config = {
-            'user': os.environ.get('DB_USER', 'root'),
-            'password': os.environ.get('DB_PASSWORD', ''),
-            'host': os.environ.get('DB_HOST', 'localhost'),
-            'database': os.environ.get('DB_NAME', 'kabana_attendance'),
-            'port': int(os.environ.get('DB_PORT', 3306)),
+            'user': os.environ.get('DB_USER', 'root').strip(),
+            'password': os.environ.get('DB_PASSWORD', '').strip(),
+            'host': os.environ.get('DB_HOST', 'localhost').strip(),
+            'database': os.environ.get('DB_NAME', 'kabana_attendance').strip(),
+            'port': int(str(os.environ.get('DB_PORT', 3306)).strip()),
             'raise_on_warnings': False
         }
         

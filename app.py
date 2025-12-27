@@ -291,6 +291,10 @@ def api_test_db():
     """API de diagnostic détaillée pour la BDD"""
     db = DBManager()
     config_safe = db.config.copy()
+    # Ajout de délimiteurs pour voir les espaces cachés
+    config_safe['host_debug'] = f"[{db.config['host']}]"
+    config_safe['host_len'] = len(db.config['host'])
+    
     if 'password' in config_safe:
         config_safe['password'] = '******' # Sécurité
         
